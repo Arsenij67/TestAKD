@@ -37,8 +37,8 @@ public class MotionControl : MonoBehaviour
     {
         Vector2 mousePos = Vector2.zero;
 
-        // Если джойстик не используется (Direction == Vector2.zero), обрабатываем ввод мыши/касания
-        if (variableJoystickMove.Direction.Equals(Vector2.zero))
+        // Если джойстик не используется (тоесть не касаемся GUI), обрабатываем ввод мыши/касания
+        if (!UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject() || variableJoystickMove.Direction==Vector2.zero)
         {
 #if UNITY_EDITOR
             // В редакторе Unity используем ввод с мыши

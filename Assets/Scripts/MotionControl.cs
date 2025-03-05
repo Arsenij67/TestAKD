@@ -1,6 +1,6 @@
 ﻿using Zenject;
 using UnityEngine;
-
+using System;
 public class MotionControl : MonoBehaviour
 {
     [SerializeField] private int speed = 5;
@@ -42,7 +42,14 @@ public class MotionControl : MonoBehaviour
 
     private bool ShouldRotatePlayer()
     {
-        return !UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject() && variableJoystickMove.Direction == Vector2.zero;
+
+        short countTouches = Convert.ToInt16(Input.GetMouseButton(0) || Input.GetMouseButton(1));
+#if UNITY_ANDROID
+        countTouches = (short) Input.touchCount;
+#endif
+
+        return (!UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject() && variableJoystickMove.Direction == Vector2.zero)
+                || (variableJoystickMove.Direction != Vector2.zero && countTouches>1);
     }
 
     private Vector2 GetRotationInput()

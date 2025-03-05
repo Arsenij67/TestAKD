@@ -5,58 +5,87 @@ public class ItemCollector : MonoBehaviour
 {
     [Inject] private Bag bag;
 
-    private void CollectFromShilf(Vector2 coordinates)
-    {
-        Ray ray = Camera.main.ScreenPointToRay(coordinates);
-        if (Physics.Raycast(ray, out RaycastHit hitInfo, 4f))
-        {
-
-            Item item = hitInfo.transform.GetComponent<Item>();
-            if (item != null)
-            {
-                bag.AddItem(item);
-            }
-
-        }
-    }
     private void Update()
     {
+        HandleInput();
+    }
+
+    private void HandleInput()
+    {
 #if UNITY_EDITOR
-        if (Input.GetMouseButtonDown(0)) // Используйте GetMouseButtonDown для однократного срабатывания
-        {
-            CollectFromShilf(Input.mousePosition);
-            TakeToPickup(Input.mousePosition);
-        }
+        HandleMouseInput();
 #elif PLATFORM_ANDROID
-        // На Android используем ввод касания
-        if (Input.touchCount > 0)
-            {
-                Touch touch = Input.GetTouch(0);
-
-                // Обрабатываем палец
-                if (touch.phase == TouchPhase.Began)
-                {
-                    CollectFromShilf(touch.position);
-                    TakeToPickup(touch.position);
-                }
-            }
+        HandleTouchInput();
 #endif
+    }
 
+    private void HandleMouseInput()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            Vector2 inputPosition = Input.mousePosition;
+            ProcessInput(inputPosition);
+        }
+    }
+
+    private void HandleTouchInput()
+    {
+        if (Input.touchCount > 0)
+        {
+            Touch touch = Input.GetTouch(0);
+            if (touch.phase == TouchPhase.Began)
+            {
+                Vector2 inputPosition = touch.position;
+                ProcessInput(inputPosition);
+            }
+        }
+    }
+
+    private void ProcessInput(Vector2 inputPosition)
+    {
+        CollectFromShelf(inputPosition);
+        TakeToPickup(inputPosition);
+    }
+
+    private void CollectFromShelf(Vector2 coordinates)
+    {
+        if (TryGetItemAtCoordinates(coordinates, 4f, out Item item))
+        {
+            bag.AddItem(item);
+        }
     }
 
     private void TakeToPickup(Vector2 coordinates)
     {
-        Ray ray = Camera.main.ScreenPointToRay(coordinates);
-        if (Physics.Raycast(ray, out RaycastHit hitInfo, 8f))
+        if (TryGetPickupContainerAtCoordinates(coordinates, 8f, out PickupContainer pickupContainer))
         {
-            PickupContainer item = hitInfo.transform.GetComponent<PickupContainer>();
-            if (item != null)
-            {
-
-                bag.RemoveLastItem();
-            }
-
-
+            bag.RemoveLastItem();
         }
+    }
+
+    private bool TryGetItemAtCoordinates(Vector2 coordinates, float maxDistance, out Item item)
+    {
+        item = null;
+        if (TryRaycast(coordinates, maxDistance, out RaycastHit hitInfo))
+        {
+            item = hitInfo.transform.GetComponent<Item>();
+        }
+        return item != null;
+    }
+
+    private bool TryGetPickupContainerAtCoordinates(Vector2 coordinates, float maxDistance, out PickupContainer pickupContainer)
+    {
+        pickupContainer = null;
+        if (TryRaycast(coordinates, maxDistance, out RaycastHit hitInfo))
+        {
+            pickupContainer = hitInfo.transform.GetComponent<PickupContainer>();
+        }
+        return pickupContainer != null;
+    }
+
+    private bool TryRaycast(Vector2 coordinates, float maxDistance, out RaycastHit hitInfo)
+    {
+        Ray ray = Camera.main.ScreenPointToRay(coordinates);
+        return Physics.Raycast(ray, out hitInfo, maxDistance);
     }
 }

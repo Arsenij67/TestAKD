@@ -1,4 +1,3 @@
-
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
@@ -8,54 +7,75 @@ using Zenject;
 public class Bag : MonoBehaviour
 {
     [Inject] private List<Item> items;
-    private  const float MaxWeight = 30; // максимальный вес сумки
+
+    private const float MaxWeight = 30f; // Максимальный вес сумки
     private float freeWeight = MaxWeight;
-    private float throwPower = 100f;
+
     [SerializeField] private TMP_Text textFullness;
     [SerializeField] private Transform placeItemSpawn;
 
     public void AddItem(Item item)
     {
-        if ((freeWeight - item.Weight) >= 0)
+        if (CanAddItem(item))
         {
-            freeWeight -= item.Weight;
-            items.Add(item);
-            UpdateUIFullness(string.Format($"{MaxWeight - freeWeight}/{MaxWeight}"));
-            Destroy(item.transform.gameObject);
+            AddItemToBag(item);
+            UpdateUI();
+            Destroy(item.gameObject);
         }
-         
-     
     }
 
     public void RemoveLastItem()
     {
-        if (items.Count()==0) return;
-        Debug.Log(000);
-        Item item = items.Last();
-        GameObject go = PullItem(item);
-        ThrowItem(go);
-        freeWeight += item.Weight;
-        items.Remove(item);
-        UpdateUIFullness(string.Format($"{MaxWeight - freeWeight}/{MaxWeight}"));
-        
+        if (IsBagEmpty()) return;
+
+        Item lastItem = GetLastItem();
+        GameObject itemObject = SpawnItem(lastItem);
+        ThrowItem(itemObject);
+
+        RemoveItemFromBag(lastItem);
+        UpdateUI();
     }
 
-    private GameObject PullItem(Item item)
+    private bool CanAddItem(Item item)
     {
-      return Instantiate(item.scriptableItem.Prefab, placeItemSpawn.position,Quaternion.identity);
-       
+        return freeWeight - item.Weight >= 0;
+    }
+
+    private void AddItemToBag(Item item)
+    {
+        freeWeight -= item.Weight;
+        items.Add(item);
+    }
+
+    private bool IsBagEmpty()
+    {
+        return !items.Any();
+    }
+
+    private Item GetLastItem()
+    {
+        return items.Last();
+    }
+
+    private GameObject SpawnItem(Item item)
+    {
+        return Instantiate(item.scriptableItem.Prefab, placeItemSpawn.position, Quaternion.identity);
     }
 
     private void ThrowItem(GameObject itemObject)
     {
         Rigidbody rb = itemObject.GetComponent<Rigidbody>();
-        rb.AddForce(-Vector3.forward * 4,ForceMode.Impulse);
+        rb.AddForce(-Vector3.forward * 4, ForceMode.Impulse);
     }
 
-    private void UpdateUIFullness(string updatedText)
+    private void RemoveItemFromBag(Item item)
     {
-        textFullness.text = updatedText;
+        freeWeight += item.Weight;
+        items.Remove(item);
     }
 
-
+    private void UpdateUI()
+    {
+        textFullness.text = $"{MaxWeight - freeWeight}/{MaxWeight}";
+    }
 }

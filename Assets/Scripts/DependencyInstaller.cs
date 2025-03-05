@@ -3,16 +3,42 @@ using Zenject;
 
 public class DependencyInstaller : MonoInstaller
 {
-    [SerializeField] private DynamicJoystick DynamicJoystick;
-    [SerializeField] private CharacterController charController;
+    [SerializeField] private DynamicJoystick dynamicJoystick;
+    [SerializeField] private CharacterController characterController;
+
     public override void InstallBindings()
     {
-        // Остальные привязки
-        Container.Bind<Bag>().FromComponentsInHierarchy().AsSingle();
-        Container.Bind<ListPool<Item>>().FromNew().AsSingle();
-        Container.Bind<DynamicJoystick>().FromInstance(DynamicJoystick).AsSingle();
-        Container.Bind<CharacterController>().FromInstance(charController).AsSingle();
-
+        BindBag();
+        BindListPool();
+        BindDynamicJoystick();
+        BindCharacterController();
     }
 
+    private void BindBag()
+    {
+        Container.Bind<Bag>()
+                 .FromComponentsInHierarchy()
+                 .AsSingle();
+    }
+
+    private void BindListPool()
+    {
+        Container.Bind<ListPool<Item>>()
+                 .FromNew()
+                 .AsSingle();
+    }
+
+    private void BindDynamicJoystick()
+    {
+        Container.Bind<DynamicJoystick>()
+                 .FromInstance(dynamicJoystick)
+                 .AsSingle();
+    }
+
+    private void BindCharacterController()
+    {
+        Container.Bind<CharacterController>()
+                 .FromInstance(characterController)
+                 .AsSingle();
+    }
 }

@@ -1,5 +1,6 @@
 ﻿using Zenject;
 using UnityEngine;
+
 public class MotionControl : MonoBehaviour
 {
     [SerializeField] private int speed = 5;
@@ -11,6 +12,7 @@ public class MotionControl : MonoBehaviour
     [SerializeField] private float maxVerticalAngle = 40f; // Максимальный угол наклона камеры вниз
 
     private float currentVerticalAngle = 0f; // Текущий угол наклона камеры по вертикали
+    private Vector3 _previousMousePosition; // Предыдущее положение мыши
 
     [Inject] private DynamicJoystick variableJoystickMove; // Джойстик для управления движением
     [Inject] private CharacterController charController; // Контроллер управления персонажем
@@ -24,15 +26,15 @@ public class MotionControl : MonoBehaviour
     private void MovePlayer()
     {
         Vector3 direction = transform.TransformDirection(Vector3.forward * variableJoystickMove.Vertical + Vector3.right * variableJoystickMove.Horizontal);
-        charController.Move(direction * speed * Time.fixedDeltaTime);
+        charController.Move(direction * speed * Time.deltaTime);
     }
 
     private void RotatePlayer()
     {
         if (ShouldRotatePlayer())
         {
+            print(999);
             Vector2 rotationInput = GetRotationInput();
-            Debug.Log(rotationInput);
             RotateHorizontally(rotationInput.x);
             RotateVertically(rotationInput.y);
         }
@@ -40,7 +42,7 @@ public class MotionControl : MonoBehaviour
 
     private bool ShouldRotatePlayer()
     {
-        return !UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject() || variableJoystickMove.Direction == Vector2.zero;
+        return !UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject() && variableJoystickMove.Direction == Vector2.zero;
     }
 
     private Vector2 GetRotationInput()
@@ -54,14 +56,19 @@ public class MotionControl : MonoBehaviour
 
     private Vector2 GetMouseRotationInput()
     {
-        if (Input.GetMouseButton(0))
+        if (Input.GetMouseButton(0) && !Input.GetMouseButtonDown(0))
         {
-    
-            return new Vector2(
-                Input.GetAxis("Mouse X") * rotateSpeedX * Time.fixedDeltaTime,
-                Input.GetAxis("Mouse Y") * rotateSpeedY * Time.fixedDeltaTime
-            );
+            Vector3 currentMousePosition = Input.mousePosition;
+            Vector3 mouseDelta = currentMousePosition - _previousMousePosition;
+            _previousMousePosition = currentMousePosition;
+
+            // Плавное изменение значения с использованием Lerp
+            float smoothHorizontal = Mathf.Lerp(0, mouseDelta.x * rotateSpeedX * Time.fixedDeltaTime, 0.1f);
+            float smoothVertical = Mathf.Lerp(0, mouseDelta.y * rotateSpeedY * Time.fixedDeltaTime, 0.1f);
+
+            return new Vector2(smoothHorizontal, smoothVertical);
         }
+        _previousMousePosition = Input.mousePosition;
         return Vector2.zero;
     }
 
@@ -88,7 +95,7 @@ public class MotionControl : MonoBehaviour
 
     private void RotateVertically(float verticalInput)
     {
-        currentVerticalAngle -= verticalInput;
+        currentVerticalAngle -= verticalInput; // Инвертируем для естественного поворота
         currentVerticalAngle = Mathf.Clamp(currentVerticalAngle, minVerticalAngle, maxVerticalAngle);
         Camera.main.transform.localRotation = Quaternion.Euler(currentVerticalAngle, 0, 0);
     }

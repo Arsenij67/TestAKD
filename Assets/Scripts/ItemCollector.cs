@@ -44,7 +44,6 @@ public class ItemCollector : MonoBehaviour
     private void ProcessInput(Vector2 inputPosition)
     {
         CollectFromShelf(inputPosition);
-        TakeToPickup(inputPosition);
     }
 
     private void CollectFromShelf(Vector2 coordinates)
@@ -54,13 +53,11 @@ public class ItemCollector : MonoBehaviour
             bag.AddItem(item);
         }
     }
-
-    private void TakeToPickup(Vector2 coordinates)
+    public void OnPutDownToPickup()
     {
-        if (TryGetPickupContainerAtCoordinates(coordinates, 8f, out PickupContainer pickupContainer))
-        {
-            bag.RemoveLastItem();
-        }
+
+        bag.RemoveLastItem();
+      
     }
 
     private bool TryGetItemAtCoordinates(Vector2 coordinates, float maxDistance, out Item item)

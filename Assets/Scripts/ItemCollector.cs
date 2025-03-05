@@ -44,6 +44,7 @@ public class ItemCollector : MonoBehaviour
     private void ProcessInput(Vector2 inputPosition)
     {
         CollectFromShelf(inputPosition);
+        OpenGarage(inputPosition);
     }
 
     private void CollectFromShelf(Vector2 coordinates)
@@ -53,6 +54,14 @@ public class ItemCollector : MonoBehaviour
             bag.AddItem(item);
         }
     }
+    private void OpenGarage(Vector2 coordinates)
+    {
+        if (TryGetLockAtCoordinates(coordinates, 8f, out GarageLock locker))
+        {
+            locker.OpenDoor();
+        }
+    }
+
     public void OnPutDownToPickup()
     {
 
@@ -70,12 +79,12 @@ public class ItemCollector : MonoBehaviour
         return item != null;
     }
 
-    private bool TryGetPickupContainerAtCoordinates(Vector2 coordinates, float maxDistance, out PickupContainer pickupContainer)
+    private bool TryGetLockAtCoordinates(Vector2 coordinates, float maxDistance, out GarageLock pickupContainer)
     {
         pickupContainer = null;
         if (TryRaycast(coordinates, maxDistance, out RaycastHit hitInfo))
         {
-            pickupContainer = hitInfo.transform.GetComponent<PickupContainer>();
+            pickupContainer = hitInfo.transform.GetComponent<GarageLock>();
         }
         return pickupContainer != null;
     }

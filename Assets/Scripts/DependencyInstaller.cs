@@ -5,11 +5,13 @@ public class DependencyInstaller : MonoInstaller
 {
     [SerializeField] private DynamicJoystick dynamicJoystick;
     [SerializeField] private CharacterController characterController;
+    [SerializeField] private Animation animOpen;
 
     public override void InstallBindings()
     {
         BindBag();
         BindListPool();
+        BindAnimationOpen();
         BindDynamicJoystick();
         BindCharacterController();
     }
@@ -40,5 +42,12 @@ public class DependencyInstaller : MonoInstaller
         Container.Bind<CharacterController>()
                  .FromInstance(characterController)
                  .AsSingle();
+    }
+
+    private void BindAnimationOpen()
+    {
+        Container.Bind<Animation>()
+         .FromInstance(animOpen)
+         .AsSingle();
     }
 }
